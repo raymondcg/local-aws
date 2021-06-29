@@ -1,0 +1,73 @@
+version: "3.2"
+services:
+    db:
+        hostname: db
+        image: postgres:12-alpine
+        deploy:
+            resources:
+                limits:
+                    memory: "2 GB"
+                reservations:
+                    memory: "1 GB"
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+        ports:
+          - target: 5432
+            published: 5432
+            protocol: tcp
+        environment:
+            - POSTGRES_DB=my_database
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=docker
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+            - ./config/createdb.sql /docker-entrypoint-initdb.d/createdb.sql
+        networks:
+            - default-nw
+
+    pgadmin:
+        hostname: pgadmin
+        image: dpage/pgadmin4
+        environment:
+          - PGADMIN_DEFAULT_EMAIL=raymond@gillett.com
+          - PGADMIN_DEFAULT_PASSWORD=test
+          - SCRIPT_NAME=/pgadmin
+        volumes:
+          - ./config/pgadmin/servers.json:/pgadmin4/servers.json
+          - ./config/pgadmin/admin/:/var/lib/pgadmin
+        networks:
+          - default-nw
+
+
+    sqs-mock:
+        image: roribio16/alpine-sqs:latest
+        container_name: sqs-mock
+        ports:
+          - "9324:9324"
+          - "9325:9325"
+        networks:
+          - default-nw
+  
+    sns-mock:
+        image: s12v/sns
+        container_name: sns-mock
+        ports:
+          - "9911:9911"
+        networks:
+          - default-nw
+        volumes:
+          - ./config/db.json:/etc/sns/db.json
+        depends_on:
+          - sqs-mock
+      
+    lambda-docker-etl:
+        image: python-lambda
+        container_name: python-lambda
+        ports:
+            - "9000:8080"
+        networks:
+          - default-nw
+networks:
+  default-nw:
+    external: true
