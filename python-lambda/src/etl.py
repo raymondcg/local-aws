@@ -1,7 +1,7 @@
 import pandas as pd
 import logging
 
-logger = loggin.getLogger()
+logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def score_check(score, subject, student):
@@ -22,9 +22,11 @@ def score_check(score, subject, student):
     else:
         return score
         
-def extract();
+def extract():
     """ Return a dataframe with students and their scores"""
-    data = {}
+    data = {'Name': ['Hermione'] * 5 + ['Ron'] * 5 + ['Harry'] * 5,
+        'Subject': ['History of Magic', 'Dark Arts', 'Potions', 'Flying', None] * 3,
+        'Score': [100, 100, 100, 68, 99, 45, 53, 39, 87, 99, 67, 86, 37, 100, 99]}
     
     df = pd.DataFrame(data)
     logger.info(f'Shape of the extracted df: {df.shape}. Columns: {list(df)}')
@@ -38,10 +40,10 @@ def transform(df):
 
 def load(df):
     old = df["Score"].tolist()
-    new = df["New_score"].tolist()
+    new = df["New_Score"].tolist()
     return f"ETL finished. Old scores: {old}. New Scores: {new}"
     
-def handler(event, context)
+def handler(event, context):
     logger.info(f'Event: {event}')
     extracted_df = extract()
     transformed_df = transform(extracted_df)
