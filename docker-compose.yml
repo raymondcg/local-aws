@@ -62,7 +62,7 @@ services:
           - sqs-mock
       
     lambda-docker-etl:
-        image: python-lambda
+        image: necrobraska/python-lambda
         container_name: python-lambda
         ports:
             - "9000:8080"

@@ -4,7 +4,6 @@ The goal of this project is demonstrate a Python AWS Lambda project running loca
 
 ## Guides Used
 
-* [Lambda](https://dashbird.io/blog/deploying-aws-lambda-with-docker/)
 * [SQS and SNS](https://medium.com/@chewcysg/running-a-local-instance-of-aws-sns-4df9893b2e59)
 
 ## Configuration
