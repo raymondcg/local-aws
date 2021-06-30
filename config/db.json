@@ -22,13 +22,6 @@
       "endpoint": "aws-sqs://test-fanout2?amazonSQSEndpoint=http://sqs-mock:9324&accessKey=&secretKey=",
       "owner": "",
       "protocol": "sqs"
-    },
-    {
-      "arn": "28703536-bc90-4b2c-ba49-cc9b864650e4",
-      "topicArn": "arn:aws:sns:eu-west-2:123450000001:test-rabbitmq",
-      "endpoint": "rabbitmq://rabbitmq-server:5672/amq-sns?exchangeType=direct&durable=false&queue=amq-sns-queue",
-      "owner": "",
-      "protocol": "rabbitmq"
     }
   ],
   "topics": [
@@ -39,10 +32,6 @@
     {
       "arn": "arn:aws:sns:eu-west-2:123450000001:test-fanout",
       "name": "test-fanout"
-    },
-    {
-      "arn": "arn:aws:sns:eu-west-2:123450000001:test-rabbitmq",
-      "name": "test-rabbitmq"
     }
   ]
 }

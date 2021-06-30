@@ -1,41 +1,65 @@
 version: "3.2"
 services:
     db:
-        hostname: db
         image: postgres:12-alpine
-        deploy:
-            resources:
-                limits:
-                    memory: "2 GB"
-                reservations:
-                    memory: "1 GB"
-            replicas: 1
-            restart_policy:
-                condition: on-failure
+        container_name: db
         ports:
-          - target: 5432
-            published: 5432
-            protocol: tcp
+          - "5432:5432"
         environment:
             - POSTGRES_DB=my_database
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=docker
         volumes:
             - pgdata:/var/lib/postgresql/data
-            - ./config/createdb.sql /docker-entrypoint-initdb.d/createdb.sql
+            - ./config/createdb.sql:/docker-entrypoint-initdb.d/createdb.sql
         networks:
             - default-nw
 
+    minio1:
+        image: minio/minio
+        container_name: minio1
+        volumes:
+          - data1-1:/data1
+          - data1-2:/data2
+        ports:
+          - "9001:9000"
+        environment:
+          MINIO_ROOT_USER: admin
+          MINIO_ROOT_PASSWORD: password
+        command: server http://minio{1...2}/data{1...2}
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+          interval: 30s
+          timeout: 20s
+          retries: 3
+
+    minio2:
+        image: minio/minio
+        container_name: minio2
+        volumes:
+          - data2-1:/data1
+          - data2-2:/data2
+        ports:
+          - "9002:9000"
+        environment:
+          MINIO_ROOT_USER: admin
+          MINIO_ROOT_PASSWORD: password
+        command: server http://minio{1...2}/data{1...2}
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+          interval: 30s
+          timeout: 20s
+          retries: 3
+
     pgadmin:
-        hostname: pgadmin
         image: dpage/pgadmin4
+        container_name: pgadmin
         environment:
           - PGADMIN_DEFAULT_EMAIL=raymond@gillett.com
           - PGADMIN_DEFAULT_PASSWORD=test
           - SCRIPT_NAME=/pgadmin
         volumes:
           - ./config/pgadmin/servers.json:/pgadmin4/servers.json
-          - ./config/pgadmin/admin/:/var/lib/pgadmin
         networks:
           - default-nw
 
@@ -69,5 +93,11 @@ services:
         networks:
           - default-nw
 networks:
-  default-nw:
-    external: true
+    default-nw:
+    
+volumes:
+    pgdata:
+    data1-1:
+    data1-2:
+    data2-1:
+    data2-2:
