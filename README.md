@@ -1,19 +1,17 @@
 # local-aws
 
-The goal of this project is demonstrate a Python AWS Lambda project running locally with SNS, SQS, and PostgreSQL.
+The goal of this project is demonstrate a Python AWS Lambda project running locally using localstack
 
 ## Guides Used
 
-* [SQS and SNS](https://medium.com/@chewcysg/running-a-local-instance-of-aws-sns-4df9893b2e59)
-* [Minio S3](https://medium.com/the-innovation/running-s3-object-storage-locally-with-minio-f50540ffc239)
+* [SNS to SQS](https://medium.com/@agneysh/subscribing-sns-to-sqs-on-docker-using-localstack-e4f661747049)
+* [Localstack](https://docs.localstack.cloud/get-started/)
+
 
 ## Configuration
 
-* The SNS configuration is located at config/db.json
-* The SQS configuration is lcoated at config/sqs_config/elasticmq.config/db
-
 ## Key URLS
 
-* Web UI ``` http://localhost:9325 ```
-* Minio S3 ``` http://localhost:9001 ```
+* Health check ``` localhost:4566/health ```
+* Verify Service is up ``` http://localhost:8080/#/infra ```
 

@@ -1,103 +1,48 @@
-version: "3.2"
+version: "3.8"
+
 services:
-    db:
-        image: postgres:12-alpine
-        container_name: db
-        ports:
-          - "5432:5432"
-        environment:
-            - POSTGRES_DB=my_database
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=docker
-        volumes:
-            - pgdata:/var/lib/postgresql/data
-            - ./config/createdb.sql:/docker-entrypoint-initdb.d/createdb.sql
-        networks:
-            - default-nw
-
-    minio1:
-        image: minio/minio
-        container_name: minio1
-        volumes:
-          - data1-1:/data1
-          - data1-2:/data2
-        ports:
-          - "9001:9000"
-        environment:
-          MINIO_ROOT_USER: admin
-          MINIO_ROOT_PASSWORD: password
-        command: server http://minio{1...2}/data{1...2}
-        healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-          interval: 30s
-          timeout: 20s
-          retries: 3
-
-    minio2:
-        image: minio/minio
-        container_name: minio2
-        volumes:
-          - data2-1:/data1
-          - data2-2:/data2
-        ports:
-          - "9002:9000"
-        environment:
-          MINIO_ROOT_USER: admin
-          MINIO_ROOT_PASSWORD: password
-        command: server http://minio{1...2}/data{1...2}
-        healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-          interval: 30s
-          timeout: 20s
-          retries: 3
-
-    pgadmin:
-        image: dpage/pgadmin4
-        container_name: pgadmin
-        environment:
-          - PGADMIN_DEFAULT_EMAIL=raymond@gillett.com
-          - PGADMIN_DEFAULT_PASSWORD=test
-          - SCRIPT_NAME=/pgadmin
-        volumes:
-          - ./config/pgadmin/servers.json:/pgadmin4/servers.json
-        networks:
-          - default-nw
-
-
-    sqs-mock:
-        image: roribio16/alpine-sqs:latest
-        container_name: sqs-mock
-        ports:
-          - "9324:9324"
-          - "9325:9325"
-        networks:
-          - default-nw
-  
-    sns-mock:
-        image: s12v/sns
-        container_name: sns-mock
-        ports:
-          - "9911:9911"
-        networks:
-          - default-nw
-        volumes:
-          - ./config/db.json:/etc/sns/db.json
-        depends_on:
-          - sqs-mock
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack-full
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"            # Web UI
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+      - "127.0.0.1:53:53"                # DNS config (only required for Pro)
+      - "127.0.0.1:53:53/udp"            # DNS config (only required for Pro)
+      - "127.0.0.1:443:443"              # LocalStack HTTPS Gateway (only required for Pro)
       
-    lambda-docker-etl:
-        image: necrobraska/python-lambda
-        container_name: python-lambda
-        ports:
-            - "9000:8080"
-        networks:
-          - default-nw
-networks:
-    default-nw:
-    
-volumes:
-    pgdata:
-    data1-1:
-    data1-2:
-    data2-1:
-    data2-2:
+    environment:
+      - DEBUG=${DEBUG-}
+      - PERSISTENCE=${PERSISTENCE-}
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR-}
+      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY-}  # only required for Pro
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - SERVICES=sns,sqs
+      - AWS_DEFAULT_REGION=us-east-1
+      - PORT_WEB_UI=${PORT_WEB_UI- }
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  setup-resources:
+    image: mesosphere/aws-cli
+    volumes:
+      - ./dev_env:/project/dev_env
+    environment:
+      - AWS_ACCESS_KEY_ID=AKIAEXAMPLE123
+      - AWS_SECRET_ACCESS_KEY=AWSSECRETACCESSEY123
+      - AWS_DEFAULT_REGION=us-east-1
+    entrypoint: /bin/sh -c
+    command: >
+      "
+        sleep 20
+        # Executing SNS
+        aws sns create-topic --name local_sns --endpoint-url=http://localstack:4566 
+        # Executing SQS
+        aws sqs create-queue --endpoint-url=http://localstack:4566 --queue-name local_queue;
+        # Subscribing to SNS to SQS
+        aws --endpoint-url=http://localstack:4566 sns subscribe --topic-arn arn:aws:sns:us-east-1:000000000000:local_sns --protocol sqs --notification-endpoint http://localstack:4566/queue/local_queue
+      "
+    depends_on:
+      - localstack
