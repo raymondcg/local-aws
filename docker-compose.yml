@@ -17,8 +17,6 @@ services:
       - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR-}
       - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY-}  # only required for Pro
       - DOCKER_HOST=unix:///var/run/docker.sock
-      - EAGER_SERVICE_LOADING=1
-      - SERVICES=sns,sqs
       - AWS_DEFAULT_REGION=us-east-1
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
