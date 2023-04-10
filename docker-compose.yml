@@ -35,11 +35,11 @@ services:
       "
         sleep 20
         # Executing SNS
-        aws sns create-topic --name local_sns --endpoint-url=http://localstack:4566 
+        aws sns create-topic --name create-epub-topic --endpoint-url=http://localstack:4566 
         # Executing SQS
-        aws sqs create-queue --endpoint-url=http://localstack:4566 --queue-name local_queue;
+        aws sqs create-queue --endpoint-url=http://localstack:4566 --queue-name create-epub-queue;
         # Subscribing to SNS to SQS
-        aws --endpoint-url=http://localstack:4566 sns subscribe --topic-arn arn:aws:sns:us-east-1:000000000000:local_sns --protocol sqs --notification-endpoint http://localstack:4566/queue/local_queue
+        aws --endpoint-url=http://localstack:4566 sns subscribe --topic-arn arn:aws:sns:us-east-1:000000000000:create-epub-topic --protocol sqs --notification-endpoint http://localstack:4566/queue/create-epub-queue
       "
     depends_on:
       - localstack
